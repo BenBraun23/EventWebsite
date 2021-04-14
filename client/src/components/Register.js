@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import DropdownButton from "react-bootstrap/DropdownButton";
+import Dropdown from "react-bootstrap/Dropdown";
 import "./Login.css";
 import axios from 'axios';
 import {useHistory} from 'react-router-dom';
@@ -9,7 +11,7 @@ export default function Register() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-
+    const [role, setRole] = useState("Student");
     let history = useHistory();
     function validateForm() {
         return email.length > 0 && password.length > 0;
@@ -19,7 +21,8 @@ export default function Register() {
     event.preventDefault();
     const payload = {
         email: email,
-        password: password
+        password: password,
+        role: role
     };
     axios.post('http://localhost:5000/api/register', payload)
         .then((res) => {
@@ -62,10 +65,18 @@ export default function Register() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Form.Group>
+        <Form.Group size="lg" controlId="role">
+          <DropdownButton id="dropdown-basic-button" title={role} onSelect={(e) => setRole(e)}>
+            <Dropdown.Item eventKey="Student">Student</Dropdown.Item>
+            <Dropdown.Item eventKey="Admin">Admin</Dropdown.Item>
+            <Dropdown.Item eventKey="Superadmin">Superadmin</Dropdown.Item>
+          </DropdownButton>
+        </Form.Group>
+        
         <Button block size="lg" type="submit" disabled={!validateForm()}>
           Register
         </Button>
-        <Button block size="lg" type="submit" disabled={handleClick}>
+        <Button block size="lg" type="submit" onClick={handleClick}>
           Back to login
         </Button>
         {error}

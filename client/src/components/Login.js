@@ -5,7 +5,7 @@ import "./Login.css";
 import axios from 'axios';
 import {useHistory} from "react-router-dom";
 
-export default function Login() {
+export default function Login(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -25,6 +25,9 @@ export default function Login() {
             console.log(res.data);
             if(!res.data.error)
             {
+              props.setId(res.data.id);
+              console.log(res.data.id);
+              props.setRole(res.data.role);
               history.push('/home');
             }
             else 

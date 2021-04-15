@@ -46,16 +46,17 @@ app.post('/api/login', async (req, res, next) => {
 			{
 				return res.json({error: error});
 			}
-			return res.json({error: error, id: results[0].id});
+			return res.json({error: error, id: results[0].uid, role: results[0].role});
 		});
 });
 
 
 app.post('/api/register', async (req, res, next) => {
 	console.log("register");
-    const {email, password} = req.body;
-	console.log(email);
-	return executeQuery('SELECT * FROM users WHERE email="' + email + '";', 
+    const {email, password, role, university} = req.body;
+	if(role === "Student")
+	{
+		return executeQuery('SELECT * FROM users WHERE email="' + email + '";', 
 		function(error, results) {
 			console.log(error);
 			console.log(results);
@@ -67,11 +68,64 @@ app.post('/api/register', async (req, res, next) => {
 			{
 				return res.json({error: error});
 			}
-			return executeQuery('INSERT INTO users (email, password) VALUES ("' + email + '","' + password + '");',
+			return executeQuery(`INSERT INTO users (email, password, role) VALUES ("${email}", "${password}", "${role}");`,
 				function(error, results){
 					return res.json({error: error});
 			});
-	});
+		});
+	}
+	else if(role === "Admin")
+	{
+		return executeQuery('SELECT * FROM users WHERE email="' + email + '";', 
+		function(error, results) {
+			if(results.length > 0)
+			{
+				error = 'the username is already taken';
+			}
+			if(error)
+			{
+				return res.json({error: error});
+			}
+			return executeQuery(`INSERT INTO users (email, password, role) VALUES ("${email}", "${password}", "${role}");`,
+				function(error, results){
+					if(results)
+					{
+						var query = 'INSERT INTO admins (aid, university) VALUES ("' + results.insertId + '","' + university + '");';
+						return executeQuery(query,
+							function(error, results) {
+								return res.json({error: error});
+						})
+					}
+					return res.json({error: error});
+			});
+		});
+	}
+	else
+	{
+		return executeQuery('SELECT * FROM users WHERE email="' + email + '";', 
+		function(error, results) {
+			if(results.length > 0)
+			{
+				error = 'the username is already taken';
+			}
+			if(error)
+			{
+				return res.json({error: error});
+			}
+			return executeQuery(`INSERT INTO users (email, password, role) VALUES ("${email}", "${password}", "${role}");`,
+				function(error, results){
+					if(results)
+					{
+						var query = 'INSERT INTO superadmins (sid) VALUES ("' + results.insertId + '");';
+						return executeQuery(query,
+							function(error, results) {
+								return res.json({error: error});
+						})
+					}
+					return res.json({error: error});
+			});
+		});
+	}
 });
 
 app.post('/api/registerAdmin', async (req, res, next) => {
@@ -99,6 +153,44 @@ app.post('/api/registerAdmin', async (req, res, next) => {
 					return res.json({error: error});
 			});
 	});
+});
+app.post('/api/createUniversity', async(req, res, next) => {
+	const {name, location, description, numStudents} = req.body;
+	return executeQuery(`INSERT INTO universities (name, lname, description, numstudents) VALUES
+	 ("${name}", "${location}", "${description}", "${numStudents}");`,
+		function(error, results) {
+			return res.json({error: error});
+		}
+	)
+});
+app.post('/api/createLocation', async(req, res, next) => {
+	const {name, address, latitude, longitude} = req.body;
+	return executeQuery(`INSERT INTO locations (lname, address, latitude, longitude) VALUES
+	 ("${name}", "${address}", ${latitude}, ${longitude});`,
+		function(error, results) {
+			return res.json({error: error});
+		}
+	)
+});
+app.post('/api/createEvent', async(req, res, next) => {
+	const {name, time, location, description, visibility, id} = req.body;
+	console.log(visibility);
+	console.log(id);
+	console.log(name);
+	return executeQuery(`INSERT INTO events (lname, time, description, name) VALUES
+	 ("${location}", "${time}", "${description}", "${name}");`,
+		function(error, results) {
+			if(error)
+			{
+				return res.json({error: error});
+			}
+			return executeQuery(`INSERT INTO ${visibility}events (eid, sid) VALUES (${results.insertId}, ${id})`,
+				function(error, results) {
+					return res.json({error: error});
+				}
+			)
+		}
+	)
 });
 app.post('/api/registerSuperadmin', async (req, res, next) => {
     const {email, password} = req.body;

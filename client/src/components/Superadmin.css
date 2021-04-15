@@ -1,0 +1,11 @@
+@media all and (min-width: 480px) {
+    .Superadmin {
+      padding: 60px 0;
+    }
+  
+    .Superadmin form {
+      padding: 60px 0;
+      margin: 0 auto;
+      max-width: 320px;
+    }
+  }

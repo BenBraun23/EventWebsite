@@ -6,11 +6,12 @@ import Dropdown from "react-bootstrap/Dropdown";
 import "./Login.css";
 import axios from 'axios';
 import {useHistory} from 'react-router-dom';
-export default function Register() {
+export default function Register(props) {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [university, setUniversity] = useState("");
     const [role, setRole] = useState("Student");
     let history = useHistory();
     function validateForm() {
@@ -22,7 +23,8 @@ export default function Register() {
     const payload = {
         email: email,
         password: password,
-        role: role
+        role: props.role,
+        university: university
     };
     axios.post('http://localhost:5000/api/register', payload)
         .then((res) => {
@@ -65,6 +67,16 @@ export default function Register() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Form.Group>
+        { props.role === "Admin" &&
+          <Form.Group size="lg" controlId="university">
+            <Form.Label>University</Form.Label>
+            <Form.Control
+              value={university}
+              onChange={(e) => setUniversity(e.target.value)}
+
+            />
+          </Form.Group>
+        }
         <Form.Group size="lg" controlId="role">
           <DropdownButton id="dropdown-basic-button" title={role} onSelect={(e) => setRole(e)}>
             <Dropdown.Item eventKey="Student">Student</Dropdown.Item>

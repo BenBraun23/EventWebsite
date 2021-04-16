@@ -23,7 +23,7 @@ export default function Register(props) {
     const payload = {
         email: email,
         password: password,
-        role: props.role,
+        role: role,
         university: university
     };
     axios.post('http://localhost:5000/api/register', payload)
@@ -67,7 +67,7 @@ export default function Register(props) {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Form.Group>
-        { props.role === "Admin" &&
+        { role === "Admin" &&
           <Form.Group size="lg" controlId="university">
             <Form.Label>University</Form.Label>
             <Form.Control

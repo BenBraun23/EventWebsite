@@ -4,6 +4,7 @@ const mysql = require("mysql");
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const json = require("body-parser/lib/types/json");
+const util = require('util');
 var con = mysql.createConnection({
 	host:"localhost",
 	user:"root",
@@ -91,6 +92,7 @@ app.post('/api/register', async (req, res, next) => {
 					if(results)
 					{
 						var query = 'INSERT INTO admins (aid, university) VALUES ("' + results.insertId + '","' + university + '");';
+						console.log(query);
 						return executeQuery(query,
 							function(error, results) {
 								return res.json({error: error});
@@ -189,6 +191,56 @@ app.post('/api/createEvent', async(req, res, next) => {
 					return res.json({error: error});
 				}
 			)
+		}
+	)
+});
+app.post('/api/createRSOEvent', async(req, res, next) => {
+	const {name, time, location, description, rso} = req.body;
+	var query = util.promisify(con.query).bind(con);
+	var ret;
+	try{
+		ret = await query(`SELECT rid FROM rsos where name="${rso}"`);
+	}catch(e){
+		console.log(e);
+		return res.json({error: 'unknown error'});
+	}
+	if(ret[0].error){
+		return res.json({error: ret[0].error});
+	}
+	return executeQuery(`INSERT INTO events (lname, time, description, name) VALUES
+	 ("${location}", "${time}", "${description}", "${name}");`,
+		function(error, results) {
+			if(error)
+			{
+				return res.json({error: error});
+			}
+			return executeQuery(`INSERT INTO rsoevents (eid, rid) VALUES (${results.insertId}, ${ret[0].rid})`,
+				function(error, results) {
+					return res.json({error: error});
+				}
+			)
+		}
+	)
+});
+app.post('/api/createRSO', async (req, res, next) => {
+	const {id, name} = req.body;
+	console.log(id);
+	var query = util.promisify(con.query).bind(con);
+	var ret;
+	try {
+		ret = await query(`SELECT university FROM admins where aid=${id}`);
+		console.log(ret[0].university);
+	} catch (e) {
+		console.log(e);
+		return res.json({error: 'unknown error'});
+	}
+	if(ret[0].error){
+		return res.json({error: ret[0].error});
+	}
+	return executeQuery(`INSERT INTO rsos (aid, active, name, university) VALUES (${id}, false, "${name}", "${ret[0].university}");`,
+		function(error, results) {
+			console.log(error);
+			return res.json({error: error});
 		}
 	)
 });

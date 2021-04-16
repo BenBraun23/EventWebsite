@@ -6,17 +6,17 @@ import Dropdown from "react-bootstrap/Dropdown";
 import "./Login.css";
 import axios from 'axios';
 import {useHistory} from 'react-router-dom';
-export default function CreateEvent(props) {
+export default function CreateRSOEvent(props) {
 
     const [name, setName] = useState("");
     const [time, setTime] = useState("time");
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState();
-    const [visibility, setVisibility] = useState("public");
+    const [rso, setRso] = useState("");
     const [error, setError] = useState("");
     let history = useHistory();
     function validateForm() {
-        return name.length > 0 && location.length > 0 && time !== "time";
+        return name.length > 0 && location.length > 0 && time !== "time" && rso.length > 0;
     }
     const times = getTimes();
 
@@ -35,11 +35,10 @@ export default function CreateEvent(props) {
           time: time,
           location: location,
           description: description,
-          visibility: visibility,
-          id:props.id
+          rso: rso
       };
       console.log(payload);
-      axios.post('http://localhost:5000/api/createEvent', payload)
+      axios.post('http://localhost:5000/api/createRSOEvent', payload)
           .then((res) => {
               console.log(res.data);
               if(res.data.error)
@@ -61,7 +60,7 @@ export default function CreateEvent(props) {
 
 
   return (
-    <div className="CreateEvent">
+    <div className="CreateRSOEvent">
       <Form onSubmit={handleSubmit}>
         <Form.Group size="lg" controlId="name">
         <Form.Label>Event Name</Form.Label>
@@ -69,6 +68,14 @@ export default function CreateEvent(props) {
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
+        />
+        </Form.Group>
+        <Form.Group size="lg" controlId="name">
+        <Form.Label>RSO Name</Form.Label>
+        <Form.Control
+            autoFocus
+            value={rso}
+            onChange={(e) => setRso(e.target.value)}
         />
         </Form.Group>
         <Form.Group size="lg" controlId="location">
@@ -94,12 +101,7 @@ export default function CreateEvent(props) {
               }
           </DropdownButton>
         </Form.Group>    
-        <Form.Group size="lg" controlId="visibility">
-          <DropdownButton id="dropdown-basic-button" title={visibility} onSelect={(e) => setVisibility(e)}>
-              <Dropdown.Item eventKey="public">{"public"}</Dropdown.Item>
-              <Dropdown.Item eventKey="private">{"private"}</Dropdown.Item>
-          </DropdownButton>
-        </Form.Group>     
+  
         <Button block size="lg" type="submit" disabled={!validateForm()}>
         Add
         </Button>

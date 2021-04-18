@@ -14,9 +14,9 @@ export default function EventInfo(props) {
            Event Name:{props.event.name}
         </div>
         <div>
-           Time: {props.event.time}
+           Time: {props.event.day + " " + props.event.time + ":00"} 
         </div>
-        <div>
+        <div> 
            {props.event.description}
         </div>
         <div>

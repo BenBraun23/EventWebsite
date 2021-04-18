@@ -13,10 +13,11 @@ export default function CreateRSOEvent(props) {
     const [location, setLocation] = useState("");
     const [description, setDescription] = useState();
     const [rso, setRso] = useState("");
+    const [day, setDay] = useState("");
     const [error, setError] = useState("");
     let history = useHistory();
     function validateForm() {
-        return name.length > 0 && location.length > 0 && time !== "time" && rso.length > 0;
+        return name.length > 0 && location.length > 0 && time !== "time" && rso.length > 0 && day.length > 0;
     }
     const times = getTimes();
 
@@ -33,6 +34,7 @@ export default function CreateRSOEvent(props) {
       const payload = {
           name: name,
           time: time,
+          day: day,
           location: location,
           description: description,
           rso: rso
@@ -90,6 +92,13 @@ export default function CreateRSOEvent(props) {
             <Form.Control
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+        />
+        </Form.Group>
+        <Form.Group size="lg" controlId="day">
+            <Form.Label>Day</Form.Label>
+            <Form.Control
+            value={day}
+            onChange={(e) => setDay(e.target.value)}
         />
         </Form.Group>
         <Form.Group size="lg" controlId="time">

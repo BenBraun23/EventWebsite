@@ -149,12 +149,10 @@ app.post('/api/createLocation', async(req, res, next) => {
 	)
 });
 app.post('/api/createEvent', async(req, res, next) => {
-	const {name, time, location, description, visibility, university, id} = req.body;
-	console.log(visibility);
-	console.log(id);
-	console.log(name);
-	return executeQuery(`INSERT INTO events (lname, time, description, name, university) VALUES
-	 ("${location}", "${time}", "${description}", "${name}", "${university}");`,
+	const {name, time, location, description, visibility, university, id, day} = req.body;
+
+	return executeQuery(`INSERT INTO events (lname, time, description, name, university, day) VALUES
+	 ("${location}", "${time}", "${description}", "${name}", "${university}", "${day}");`,
 		function(error, results) {
 			if(error)
 			{
@@ -257,7 +255,7 @@ app.post('/api/leaveRSO', async(req, res, next) => {
 	);
 });
 app.post('/api/createRSOEvent', async(req, res, next) => {
-	const {name, time, location, description, rso} = req.body;
+	const {name, time, location, description, rso, day} = req.body;
 	var query = util.promisify(con.query).bind(con);
 	var ret;
 	try{
@@ -269,8 +267,8 @@ app.post('/api/createRSOEvent', async(req, res, next) => {
 	if(ret[0].error){
 		return res.json({error: ret[0].error});
 	}
-	return executeQuery(`INSERT INTO events (lname, time, description, name, university) VALUES
-	 ("${location}", "${time}", "${description}", "${name}", "${ret[0].university}");`,
+	return executeQuery(`INSERT INTO events (lname, time, description, name, university, day) VALUES
+	 ("${location}", "${time}", "${description}", "${name}", "${ret[0].university}", "${day}");`,
 		function(error, results) {
 			if(error)
 			{

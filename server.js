@@ -69,7 +69,7 @@ app.post('/api/register', async (req, res, next) => {
 			{
 				return res.json({error: error});
 			}
-			return executeQuery(`INSERT INTO users (email, password, role) VALUES ("${email}", "${password}", "${role}");`,
+			return executeQuery(`INSERT INTO users (email, password, role, university) VALUES ("${email}", "${password}", "${role}", "${university}");`,
 				function(error, results){
 					return res.json({error: error});
 			});
@@ -87,11 +87,11 @@ app.post('/api/register', async (req, res, next) => {
 			{
 				return res.json({error: error});
 			}
-			return executeQuery(`INSERT INTO users (email, password, role) VALUES ("${email}", "${password}", "${role}");`,
+			return executeQuery(`INSERT INTO users (email, password, role, university) VALUES ("${email}", "${password}", "${role}", "${university}");`,
 				function(error, results){
 					if(results)
 					{
-						var query = 'INSERT INTO admins (aid, university) VALUES ("' + results.insertId + '","' + university + '");';
+						var query = `INSERT INTO admins (aid) VALUES (${results.insertId});`;
 						console.log(query);
 						return executeQuery(query,
 							function(error, results) {
@@ -130,36 +130,10 @@ app.post('/api/register', async (req, res, next) => {
 	}
 });
 
-app.post('/api/registerAdmin', async (req, res, next) => {
-    const {email, password, university} = req.body;
-	return executeQuery('SELECT * FROM users WHERE email="' + email + '";', 
-		function(error, results) {
-			if(results.length > 0)
-			{
-				error = 'the username is already taken';
-			}
-			if(error)
-			{
-				return res.json({error: error});
-			}
-			return executeQuery('INSERT INTO users (email, password) VALUES ("' + email + '","' + password + '");',
-				function(error, results){
-					if(results)
-					{
-						var query = 'INSERT INTO admins (aid, university) VALUES ("' + results.insertId + '","' + university + '");'
-						return executeQuery(query,
-							function(error, results) {
-								return res.json({error: error});
-						})
-					}
-					return res.json({error: error});
-			});
-	});
-});
 app.post('/api/createUniversity', async(req, res, next) => {
 	const {name, location, description, numStudents} = req.body;
 	return executeQuery(`INSERT INTO universities (name, lname, description, numstudents) VALUES
-	 ("${name}", "${location}", "${description}", "${numStudents}");`,
+	("${name}", "${location}", "${description}", "${numStudents}");`,
 		function(error, results) {
 			return res.json({error: error});
 		}
@@ -175,12 +149,12 @@ app.post('/api/createLocation', async(req, res, next) => {
 	)
 });
 app.post('/api/createEvent', async(req, res, next) => {
-	const {name, time, location, description, visibility, id} = req.body;
+	const {name, time, location, description, visibility, university, id} = req.body;
 	console.log(visibility);
 	console.log(id);
 	console.log(name);
-	return executeQuery(`INSERT INTO events (lname, time, description, name) VALUES
-	 ("${location}", "${time}", "${description}", "${name}");`,
+	return executeQuery(`INSERT INTO events (lname, time, description, name, university) VALUES
+	 ("${location}", "${time}", "${description}", "${name}", "${university}");`,
 		function(error, results) {
 			if(error)
 			{
@@ -194,12 +168,100 @@ app.post('/api/createEvent', async(req, res, next) => {
 		}
 	)
 });
+app.post('/api/joinRSO', async(req, res, next) => {
+	const {rso, id} = req.body;
+	var query = util.promisify(con.query).bind(con);
+	var ret;
+	try{
+		ret = await query(`SELECT rid FROM rsos where name="${rso}"`);
+	} catch(e) {
+		console.log(e);
+		return res.json({error: 'unknown error'});
+	}
+	return executeQuery(`INSERT INTO students_rsos (uid, rid) VALUES (${id}, ${ret[0].rid})`,
+		function(error, results) {
+			return res.json({error: error});
+		}
+	);
+});
+app.post('/api/locationEvents', async(req, res, next) => {
+	const {location, id} = req.body;
+	var query = util.promisify(con.query).bind(con);
+	var ret;
+	try{
+		ret = await query(`SELECT university FROM users WHERE uid=${id}`);
+	} catch(e) {
+		console.log(e);
+		return res.json({error: 'unknown error'});
+	}
+	return executeQuery(
+		`select distinct * from events e
+		where e.lname="${location}"
+		AND e.eid IN (
+		select eid from publicevents
+		UNION
+		select p.eid from privateevents p, events ev
+		where ev.university="${ret[0].university}"
+		and p.eid=ev.eid
+		UNION
+		select r.eid from rsoevents r
+		where r.rid IN ( 
+		select s.rid from students_rsos s
+		where s.uid=${id}))`,
+		function(error, results) {
+			return res.json({error:error, events:results});
+		})
+});
+app.post('/api/universityEvents', async(req, res, next) => {
+	const {university, id} = req.body;
+	var query = util.promisify(con.query).bind(con);
+	var ret;
+	try{
+		ret = await query(`SELECT university FROM users WHERE uid=${id}`);
+	} catch(e) {
+		console.log(e);
+		return res.json({error: 'unknown error'});
+	}
+	return executeQuery(
+		`select distinct * from events e
+		where e.university="${university}"
+		AND e.eid IN (
+		select eid from publicevents
+		UNION
+		select p.eid from privateevents p, events ev
+		where ev.university="${ret[0].university}"
+		and p.eid=ev.eid
+		UNION
+		select r.eid from rsoevents r
+		where r.rid IN ( 
+		select s.rid from students_rsos s
+		where s.uid=${id}))`,
+		function(error, results) {
+			return res.json({error:error, events:results});
+		})
+});
+app.post('/api/leaveRSO', async(req, res, next) => {
+	const {rso, id} = req.body;
+	var query = util.promisify(con.query).bind(con);
+	var ret;
+	try{
+		ret = await query(`SELECT rid FROM rsos where name="${rso}"`);
+	} catch(e) {
+		console.log(e);
+		return res.json({error: 'unknown error'});
+	}
+	return executeQuery(`DELETE FROM students_rsos WHERE uid=${id} AND rid=${ret[0].rid};`,
+		function(error, results) {
+			return res.json({error: error});
+		}
+	);
+});
 app.post('/api/createRSOEvent', async(req, res, next) => {
 	const {name, time, location, description, rso} = req.body;
 	var query = util.promisify(con.query).bind(con);
 	var ret;
 	try{
-		ret = await query(`SELECT rid FROM rsos where name="${rso}"`);
+		ret = await query(`SELECT rid, university FROM rsos where name="${rso}"`);
 	}catch(e){
 		console.log(e);
 		return res.json({error: 'unknown error'});
@@ -207,8 +269,8 @@ app.post('/api/createRSOEvent', async(req, res, next) => {
 	if(ret[0].error){
 		return res.json({error: ret[0].error});
 	}
-	return executeQuery(`INSERT INTO events (lname, time, description, name) VALUES
-	 ("${location}", "${time}", "${description}", "${name}");`,
+	return executeQuery(`INSERT INTO events (lname, time, description, name, university) VALUES
+	 ("${location}", "${time}", "${description}", "${name}", "${ret[0].university}");`,
 		function(error, results) {
 			if(error)
 			{
@@ -228,7 +290,7 @@ app.post('/api/createRSO', async (req, res, next) => {
 	var query = util.promisify(con.query).bind(con);
 	var ret;
 	try {
-		ret = await query(`SELECT university FROM admins where aid=${id}`);
+		ret = await query(`SELECT university FROM users where uid=${id}`);
 		console.log(ret[0].university);
 	} catch (e) {
 		console.log(e);
@@ -272,31 +334,38 @@ app.post('/api/registerSuperadmin', async (req, res, next) => {
 });
 app.post('/api/addcomment', async(req, res, next) => {
 	console.log("add");
-	const {text, rating} = req.body;
+	const {uid, eid, text, rating} = req.body;
 	var err = '';
 	var id = -1;
 	var date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-	return executeQuery('INSERT INTO comments (text, rating, time) VALUES ("' + text + '", "' + rating + '", "' + date + '");',
+	return executeQuery(`INSERT INTO comments (uid, eid, text, rating, time) VALUES (${uid}, ${eid}, "${text}", ${rating}, "${date}")`,
 		function(error, results) {
 			if(!error)
 			{
-				id = result.insertId;
+				id = results.insertId;
 			}
 			return res.json({error: error, id: id});
 	});
 });
-
+app.post('/api/getComments', async(req, res, next) => {
+	console.log("getting comments");
+	const {eid} = req.body;
+	return executeQuery(`SELECT * FROM comments WHERE eid=${eid}`,
+	function(error, results) {
+		return res.json({error: error, comments: results})
+	})
+});
 app.post('/api/editcomment', async (req, res, next) => {
-	const {id, text, rating} = req.body;
-	return executeQuery('UPDATE comments SET text="' + text + '", rating="' + rating + '" WHERE id=' + id + ';',
+	const {cid, text, rating} = req.body;
+	return executeQuery(`UPDATE comments SET text="${text}", rating=${rating} WHERE cid=${cid};`,
 		function(error, results) {
 			return res.json({error: error});
 	});
 });
 
 app.post('/api/deletecomment', async (req, res, next) => {
-	const {id} = req.body;
-	return executeQuery('DELETE FROM comments WHERE id=' + id, 
+	const {cid} = req.body;
+	return executeQuery('DELETE FROM comments WHERE cid=' + cid, 
 		function(error, results) {
 			return res.json({error: error});
 	});

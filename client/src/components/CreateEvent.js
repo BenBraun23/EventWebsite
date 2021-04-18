@@ -11,12 +11,13 @@ export default function CreateEvent(props) {
     const [name, setName] = useState("");
     const [time, setTime] = useState("time");
     const [location, setLocation] = useState("");
-    const [description, setDescription] = useState();
+    const [description, setDescription] = useState("");
+    const [university, setUniversity] = useState("");
     const [visibility, setVisibility] = useState("public");
     const [error, setError] = useState("");
     let history = useHistory();
     function validateForm() {
-        return name.length > 0 && location.length > 0 && time !== "time";
+        return name.length > 0 && location.length > 0 && time !== "time" && university.length > 0;
     }
     const times = getTimes();
 
@@ -35,6 +36,7 @@ export default function CreateEvent(props) {
           time: time,
           location: location,
           description: description,
+          university: university,
           visibility: visibility,
           id:props.id
       };
@@ -83,6 +85,13 @@ export default function CreateEvent(props) {
             <Form.Control
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+        />
+        </Form.Group>
+        <Form.Group size="lg" controlId="university">
+            <Form.Label>University</Form.Label>
+            <Form.Control
+            value={university}
+            onChange={(e) => setUniversity(e.target.value)}
         />
         </Form.Group>
         <Form.Group size="lg" controlId="time">

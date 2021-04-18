@@ -5,6 +5,7 @@ import Button from "react-bootstrap/Button";
 import {useHistory} from "react-router-dom";
 import Superadmin from "./Superadmin";
 import Admin from "./Admin";
+import Student from "./Student";
 import "./Home.css";
 
 export default function Home(props) {
@@ -26,6 +27,10 @@ export default function Home(props) {
       {
         props.role === "Admin" &&
         <Admin id={props.id} />
+      }
+      {
+        props.role === "Student" &&
+        <Student id={props.id} />
       }
     </div>
   );

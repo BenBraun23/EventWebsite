@@ -6,7 +6,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 import "./Login.css";
 import axios from 'axios';
 
-export default function JoinRSO(props) {
+export default function LeaveRSO(props) {
 
     const [rso, setRso] = useState("");
     const [error, setError] = useState("");
@@ -20,7 +20,7 @@ export default function JoinRSO(props) {
           rso: rso,
           id: props.id
       };
-      axios.post('http://localhost:5000/api/joinRSO', payload)
+      axios.post('http://localhost:5000/api/leaveRSO', payload)
           .then((res) => {
               console.log(res.data);
               if(res.data.error)
@@ -53,7 +53,7 @@ export default function JoinRSO(props) {
         />
         </Form.Group>       
         <Button block size="lg" type="submit" disabled={!validateForm()}>
-        Add
+        Leave
         </Button>
         <Button block size="lg" onClick={handleClick}>
         Cancel

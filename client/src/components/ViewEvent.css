@@ -1,0 +1,10 @@
+@media all and (min-width: 480px) {
+
+    .Event {
+        text-align: center;
+        font-size: large;
+        margin: auto;
+        width: 50%;
+        padding: 20px;
+      }
+  }

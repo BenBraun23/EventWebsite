@@ -1,0 +1,10 @@
+@media all and (min-width: 480px) {
+
+    .EventInfo {
+        text-align: center;
+        margin: auto;
+        width: 30%;
+        border: 5px solid black;
+        padding: 20px;
+      }
+  }

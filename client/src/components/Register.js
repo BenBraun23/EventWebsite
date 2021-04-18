@@ -67,7 +67,7 @@ export default function Register(props) {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Form.Group>
-        { role === "Admin" &&
+        { role !== "Superadmin" &&
           <Form.Group size="lg" controlId="university">
             <Form.Label>University</Form.Label>
             <Form.Control

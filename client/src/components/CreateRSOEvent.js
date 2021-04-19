@@ -40,7 +40,6 @@ export default function CreateRSOEvent(props) {
           id: props.id,
           rso: rso
       };
-      console.log(payload);
       axios.post('http://localhost:5000/api/createRSOEvent', payload)
           .then((res) => {
               console.log(res.data);

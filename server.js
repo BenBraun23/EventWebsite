@@ -157,7 +157,7 @@ app.post('/api/createEvent', async(req, res, next) => {
 	}catch(e) {
 		console.log(e);
 	}
-	if(ret) 
+	if(ret.length > 0) 
 	{
 		return res.json({error: `Overlapping event: ${ret[0].name} is also occuring at ${ret[0].location} on ${ret[0].day} at ${ret[0].time}:00`})
 	}
@@ -265,7 +265,7 @@ app.post('/api/leaveRSO', async(req, res, next) => {
 	);
 });
 app.post('/api/createRSOEvent', async(req, res, next) => {
-	const {name, time, location, description, rso, day, id} = req.body;
+	const {name, time, day, location, description, id, rso} = req.body;
 	var query = util.promisify(con.query).bind(con);
 	var ret;
 	try{

@@ -37,6 +37,7 @@ export default function CreateRSOEvent(props) {
           day: day,
           location: location,
           description: description,
+          id: props.id,
           rso: rso
       };
       console.log(payload);

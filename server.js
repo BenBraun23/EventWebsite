@@ -150,7 +150,17 @@ app.post('/api/createLocation', async(req, res, next) => {
 });
 app.post('/api/createEvent', async(req, res, next) => {
 	const {name, time, location, description, visibility, university, id, day} = req.body;
-
+	var query = util.promisify(con.query).bind(con);
+	var ret;
+	try{
+		ret = await query(`SELECT name, time, lname, day FROM events WHERE time=${time} AND lname="${location}" AND day="${day}";`);
+	}catch(e) {
+		console.log(e);
+	}
+	if(ret) 
+	{
+		return res.json({error: `Overlapping event: ${ret[0].name} is also occuring at ${ret[0].location} on ${ret[0].day} at ${ret[0].time}:00`})
+	}
 	return executeQuery(`INSERT INTO events (lname, time, description, name, university, day) VALUES
 	 ("${location}", "${time}", "${description}", "${name}", "${university}", "${day}");`,
 		function(error, results) {
@@ -255,17 +265,21 @@ app.post('/api/leaveRSO', async(req, res, next) => {
 	);
 });
 app.post('/api/createRSOEvent', async(req, res, next) => {
-	const {name, time, location, description, rso, day} = req.body;
+	const {name, time, location, description, rso, day, id} = req.body;
 	var query = util.promisify(con.query).bind(con);
 	var ret;
 	try{
-		ret = await query(`SELECT rid, university FROM rsos where name="${rso}"`);
+		ret = await query(`SELECT aid, rid, university FROM rsos where name="${rso}"`);
 	}catch(e){
 		console.log(e);
 		return res.json({error: 'unknown error'});
 	}
 	if(ret[0].error){
 		return res.json({error: ret[0].error});
+	}
+	if(ret[0].aid !== id)
+	{
+		return res.json({error: `You are not the admin of ${rso}`});
 	}
 	return executeQuery(`INSERT INTO events (lname, time, description, name, university, day) VALUES
 	 ("${location}", "${time}", "${description}", "${name}", "${ret[0].university}", "${day}");`,
